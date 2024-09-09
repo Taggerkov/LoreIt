@@ -6,7 +6,7 @@ using ServerEntities.Util;
 namespace MemoryRepo;
 
 public class UserImpl : ICrud, IUserRepo {
-    private List<User> Users { get; set; } = new();
+    private List<User> Users { get; set; } = [];
     private const string EntityType = "User";
 
     public IQueryable<User> GetAllUsers() {
@@ -45,9 +45,8 @@ public class UserImpl : ICrud, IUserRepo {
         return Task.CompletedTask;
     }
     
-    private List<IServerEntity> GetGenericList() {
-        var genericList = Users.Cast<IServerEntity>().ToList();
-        Users = genericList.Cast<User>().ToList();
-        return genericList;
+    #pragma warning disable CA1859
+    private IEnumerable<IServerEntity> GetGenericList() {
+        return Users;
     }
 }

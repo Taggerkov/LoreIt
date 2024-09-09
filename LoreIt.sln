@@ -1,7 +1,34 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{68AAFFEC-53E1-464A-A711-5146354B5D91}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerEntities", "ServerEntities\ServerEntities.csproj", "{6BF6DE2E-602A-4A09-8218-2CB117610AD7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepoContracts", "RepoContracts\RepoContracts.csproj", "{9E5ED11B-D8FB-43DA-8FB0-987BE7245EC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemoryRepo", "MemoryRepo\MemoryRepo.csproj", "{6176C47E-E1BF-460F-94D2-270104CD6636}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6BF6DE2E-602A-4A09-8218-2CB117610AD7} = {68AAFFEC-53E1-464A-A711-5146354B5D91}
+		{9E5ED11B-D8FB-43DA-8FB0-987BE7245EC5} = {68AAFFEC-53E1-464A-A711-5146354B5D91}
+		{6176C47E-E1BF-460F-94D2-270104CD6636} = {68AAFFEC-53E1-464A-A711-5146354B5D91}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6BF6DE2E-602A-4A09-8218-2CB117610AD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BF6DE2E-602A-4A09-8218-2CB117610AD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BF6DE2E-602A-4A09-8218-2CB117610AD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BF6DE2E-602A-4A09-8218-2CB117610AD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E5ED11B-D8FB-43DA-8FB0-987BE7245EC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E5ED11B-D8FB-43DA-8FB0-987BE7245EC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E5ED11B-D8FB-43DA-8FB0-987BE7245EC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E5ED11B-D8FB-43DA-8FB0-987BE7245EC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6176C47E-E1BF-460F-94D2-270104CD6636}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6176C47E-E1BF-460F-94D2-270104CD6636}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6176C47E-E1BF-460F-94D2-270104CD6636}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6176C47E-E1BF-460F-94D2-270104CD6636}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

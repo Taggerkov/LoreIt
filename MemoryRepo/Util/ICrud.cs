@@ -3,30 +3,32 @@
 namespace MemoryRepo.Util;
 
 internal interface ICrud {
-    
-    #pragma warning disable CA1860
-    static void Create(List<IServerEntity> query, IServerEntity item) {
-        if (item.Id != -1) throw new InvalidOperationException($"{item.EntityName} ({item.Id}) may have already been added! Expected ID: -1");
-        item.Id = query.Any() ? query.Max( u => u.Id) + 1 : 1;
-        query.Add(item);
+    static void Create(IEnumerable<IServerEntity> query, IServerEntity item) {
+        var temp = query.ToList();
+        if (item.Id != -1)
+            throw new InvalidOperationException($"{item.EntityName} ({item.Id}) may have already been added! Expected ID: -1");
+        item.Id = temp.Count > 0 ? temp.Max(u => u.Id) + 1 : 1;
+        temp.Add(item);
     }
 
-    static IServerEntity Read(List<IServerEntity> query, int id, string entityName) {
+    static IServerEntity Read(IEnumerable<IServerEntity> query, int id, string entityName) {
         var item = query.FirstOrDefault(i => i.Id == id);
         if (item == null) throw new InvalidOperationException($"{entityName} ({id}) does not exist!");
         return item;
     }
-    
-    static void Update(List<IServerEntity> query, IServerEntity item) {
-        var oldItem = query.FirstOrDefault(i => i.Id == item.Id);
+
+    static void Update(IEnumerable<IServerEntity> query, IServerEntity item) {
+        var temp = query.ToList();
+        var oldItem = temp.FirstOrDefault(i => i.Id == item.Id);
         if (oldItem == null) throw new InvalidOperationException($"Post ({item.Id}) does not exist!");
-        query.Remove(oldItem);
-        query.Add(item);
+        temp.Remove(oldItem);
+        temp.Add(item);
     }
 
-    static void Delete(List<IServerEntity> query, int id, string entityName) {
-        var oldItem = query.FirstOrDefault(i => i.Id == id);
+    static void Delete(IEnumerable<IServerEntity> query, int id, string entityName) {
+        var temp = query.ToList();
+        var oldItem = temp.FirstOrDefault(i => i.Id == id);
         if (oldItem == null) throw new InvalidOperationException($"{entityName} ({id}) does not exist!");
-        query.Remove(oldItem);
+        temp.Remove(oldItem);
     }
 }

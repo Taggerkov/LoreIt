@@ -6,11 +6,19 @@ using ServerEntities.Util;
 namespace MemoryRepo;
 
 public class PostImpl : ICrud, IPostRepo {
-    private List<Post> Posts { get; set; } = new();
+    private List<Post> Posts { get; set; } = [];
     private const string EntityType = "Post";
 
     public IQueryable<Post> GetAllPosts() {
         return Posts.AsQueryable();
+    }
+
+    public IQueryable<Post> GetAllWithoutChannel() {
+        return Posts.Where(p => p.ChannelId == -1).AsQueryable();
+    }
+
+    public IQueryable<Post> GetAllFromChannel(int channelId) {
+        return Posts.Where(p => p.ChannelId == channelId).AsQueryable();
     }
 
     public Task<Post> GetAsync(int id) {
@@ -33,9 +41,8 @@ public class PostImpl : ICrud, IPostRepo {
         return Task.CompletedTask;
     }
 
-    private List<IServerEntity> GetGenericList() {
-        var genericList = Posts.Cast<IServerEntity>().ToList();
-        Posts = genericList.Cast<Post>().ToList();
-        return genericList;
+    #pragma warning disable CA1859
+    private IEnumerable<IServerEntity> GetGenericList() {
+        return Posts;
     }
 }

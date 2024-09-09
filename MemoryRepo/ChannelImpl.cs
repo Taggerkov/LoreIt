@@ -6,7 +6,7 @@ using ServerEntities.Util;
 namespace MemoryRepo;
 
 public class ChannelImpl : ICrud, IChannelRepo {
-    private List<Channel> Channels { get; set; } = new();
+    private List<Channel> Channels { get; set; } = [];
     private const string EntityType = "Channel";
 
     public IQueryable<Channel> GetAllChannels() {
@@ -33,9 +33,8 @@ public class ChannelImpl : ICrud, IChannelRepo {
         return Task.CompletedTask;
     }
 
-    private List<IServerEntity> GetGenericList() {
-        var genericList = Channels.Cast<IServerEntity>().ToList();
-        Channels = genericList.Cast<Channel>().ToList();
-        return genericList;
+    #pragma warning disable CA1859
+    private IEnumerable<IServerEntity> GetGenericList() {
+        return Channels;
     }
 }
