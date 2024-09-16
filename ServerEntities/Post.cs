@@ -2,12 +2,12 @@
 
 namespace ServerEntities;
 
-public class Post(int authorId,int channelId, string lang, string title, string content, string image, string attachments, string tags)
+public class Post(int authorId, string title, int? channelId = null, string lang = "eng", string content = "", string image = "", string attachments = "", string tags = "")
     : IServerEntity {
     public int Id { get; set; } = -1;
     public string EntityName => "Post";
     public int AuthorId { get; } = authorId;
-    public int ChannelId { get; } = channelId;
+    public int? ChannelId { get; } = channelId;
     public string Lang { get; } = lang;
     public string Title { get; } = title;
     public string Content { get; private set; } = content;

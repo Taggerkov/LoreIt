@@ -2,7 +2,7 @@
 
 namespace ServerEntities;
 
-public class Comment(int postId, int commenterId, string content, string attachments) : IServerEntity {
+public class Comment(int postId, int commenterId, string content = "", string attachments = "") : IServerEntity {
     public int Id { get; set; } = -1;
     public string EntityName => "Comment";
     public int PostId { get; } = postId;

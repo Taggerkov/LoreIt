@@ -2,14 +2,14 @@
 
 namespace ServerEntities;
 
-public class Channel(int ownerId, string title, string description, string rules, string icon) : IServerEntity {
+public class Channel(int ownerId, string title, string? description = null, string? rules = null, string? icon = null) : IServerEntity {
     public int Id { get; set; } = -1;
     public string EntityName => "Channel";
     public int OwnerId { get; } = ownerId;
     public string Title { get; set; } = title;
-    public string Description { get; set; } = description;
-    public string Rules { get; set; } = rules;
-    public string Icon { get; set; } = icon;
+    public string? Description { get; set; } = description;
+    public string? Rules { get; set; } = rules;
+    public string? Icon { get; set; } = icon;
     public DateTime PublishDate { get; set; } = DateTime.Now;
     public DateTime LastModifiedDate { get; set; }
 
