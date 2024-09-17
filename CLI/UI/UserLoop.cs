@@ -20,20 +20,26 @@ public static class UserLoop {
         Console.Clear();
         Console.WriteLine($"LoreIt - User ({DateTime.Now})\n");
         while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)) {
-            Console.WriteLine("Please enter your command: ");
+            Console.WriteLine("\nPlease enter your command: ");
             var userInput = Console.ReadLine() ?? string.Empty;
-            var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
-            Console.WriteLine();
-            var result = splitInput[0] switch {
-                HelpStr => ShowHelp(),
-                ShowAllStr => ShowAll(userRepo),
-                ViewStr => View(userRepo, splitInput[1]),
-                DeleteStr => Delete(userRepo),
-                ReturnStr => Task.FromResult(true),
-                _ => null
-            };
-            if (result is null) Console.WriteLine("Command not recognized.");
-            else if (result.GetAwaiter().GetResult()) break;
+            try {
+                var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
+                Console.WriteLine();
+                var result = splitInput[0] switch {
+                    HelpStr => ShowHelp(),
+                    ShowAllStr => ShowAll(userRepo),
+                    ViewStr => View(userRepo, splitInput[1]),
+                    DeleteStr => Delete(userRepo),
+                    ReturnStr => Task.FromResult(true),
+                    _ => null
+                };
+                if (result is null) Console.WriteLine("Command not recognized.");
+                else if (result.GetAwaiter().GetResult()) break;
+            }
+            catch (Exception) {
+                Console.WriteLine("Could not understand command or arguments.");
+                throw;
+            }
         }
         Console.Clear();
         Console.WriteLine($"LoreIt - Main ({DateTime.Now})\n");
@@ -95,8 +101,14 @@ public static class UserLoop {
             Console.WriteLine("You are not logged in!");
             return false;
         }
-        var user = await userRepo.GetByUsernameAsync(SignInLoop.LoginUsername);
-        await userRepo.DeleteAsync(user.Id);
+        try {
+            var user = await userRepo.GetByUsernameAsync(SignInLoop.LoginUsername);
+            await userRepo.DeleteAsync(user.Id);
+        }
+        catch (InvalidOperationException e) {
+            Console.WriteLine(e.Message);
+            throw;
+        }
         SignInLoop.LoginUsername = null;
         Console.WriteLine("Your account has been deleted!");
         return true;

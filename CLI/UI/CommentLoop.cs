@@ -26,20 +26,27 @@ public static class CommentLoop {
         Console.Clear();
         Console.WriteLine($"LoreIt - Comment ({DateTime.Now})\n");
         while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)) {
-            Console.WriteLine("Please enter your command: ");
+            Console.WriteLine("\nPlease enter your command: ");
             var userInput = Console.ReadLine() ?? string.Empty;
-            var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
-            Console.WriteLine();
-            var result = splitInput[0] switch {
-                HelpStr => ShowHelp(),
-                ShowAllStr => ShowAll(commentRepo),
-                ViewStr => ViewAsync(commentRepo, postRepo, userRepo, splitInput[1]),
-                NewStr => NewAsync(commentRepo, userRepo, splitInput[1]),
-                ReturnStr => Task.FromResult(true),
-                _ => null
-            };
-            if (result is null) Console.WriteLine("Command not recognized.");
-            else if (result.GetAwaiter().GetResult()) break;
+            try {
+                var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
+                Console.WriteLine();
+                var result = splitInput[0] switch {
+                    HelpStr => ShowHelp(),
+                    ShowAllStr => ShowAll(commentRepo),
+                    ViewStr => ViewAsync(commentRepo, postRepo, userRepo, splitInput[1]),
+                    NewStr => NewAsync(commentRepo, userRepo, splitInput[1]),
+                    DeleteStr => DeleteAsync(commentRepo, splitInput[1]),
+                    ReturnStr => Task.FromResult(true),
+                    _ => null
+                };
+                if (result is null) Console.WriteLine("Command not recognized.");
+                else if (result.GetAwaiter().GetResult()) break;
+            }
+            catch (Exception) {
+                Console.WriteLine("Could not understand command or arguments.");
+                throw;
+            }
         }
         Console.Clear();
         Console.WriteLine($"LoreIt - Main ({DateTime.Now})\n");
@@ -54,7 +61,7 @@ public static class CommentLoop {
             .AppendLine($"{ShowAllStr} - Views all registered comments.")
             .AppendLine($"{ViewStr} commentId - Displays detailed information about a comment given it's unique identifier.")
             .AppendLine($"{NewStr} postId - Creates a new comment.")
-            .AppendLine($"{DeleteStr} - Deletes a comment given it's unique identifier from the service.")
+            .AppendLine($"{DeleteStr} commentId - Deletes a comment given it's unique identifier from the service.")
             .AppendLine($"{ReturnStr} - Return to the main application.");
         Console.WriteLine(help.ToString());
         return Task.FromResult(false);
@@ -104,12 +111,44 @@ public static class CommentLoop {
     /// <param name="postId">The ID of the post.</param>
     /// <return>A task that represents the asynchronous operation, containing a boolean value indicating whether the channel creation was successful.</return>
     private static async Task<bool> NewAsync(ICommentRepo commentRepo, IUserRepo userRepo, string postId) {
-        if (SignInLoop.LoginUsername is null) {
+        if (CheckLogin()) {
             Console.WriteLine("You are not logged in!");
             return false;
         }
-        var user = await userRepo.GetByUsernameAsync(SignInLoop.LoginUsername);
-        await commentRepo.AddAsync(new Comment(user.Id, int.Parse(postId)));
+        Console.WriteLine("\nWrite your Comment:");
+        try {
+            var user = await userRepo.GetByUsernameAsync(SignInLoop.LoginUsername!);
+            await commentRepo.AddAsync(new Comment(user.Id, int.Parse(postId), Console.ReadLine() ?? string.Empty));
+        }
+        catch (InvalidOperationException e) {
+            Console.WriteLine(e.Message);
+            throw;
+        }
         return true;
+    }
+    
+    /// Deletes a comment asynchronously by ID.
+    /// <param name="commentRepo">The repository interface for accessing and managing comments.</param>
+    /// <param name="commentId">The ID of the comment to be deleted.</param>
+    /// <return>A task that represents the asynchronous operation, containing a boolean value indicating whether the post was successfully deleted or not.</return>
+    private static async Task<bool> DeleteAsync(ICommentRepo commentRepo, string commentId) {
+        if (CheckLogin()) {
+            Console.WriteLine("You are not logged in!");
+            return false;
+        }
+        try {
+            await commentRepo.DeleteAsync(int.Parse(commentId));
+        }
+        catch (Exception) {
+            Console.WriteLine("Error managing argument.");
+            throw;
+        }
+        return true;
+    }
+    
+    /// Checks if the user is logged in.
+    /// <return>A boolean value indicating whether the user is logged in or not.</return>
+    private static bool CheckLogin() {
+        return SignInLoop.LoginUsername is not null;
     }
 }

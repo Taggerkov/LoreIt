@@ -28,18 +28,25 @@ public static class ChannelLoop {
         while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)) {
             Console.WriteLine("Please enter your command: ");
             var userInput = Console.ReadLine() ?? string.Empty;
-            var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
-            Console.WriteLine();
-            var result = splitInput[0] switch {
-                HelpStr => ShowHelp(),
-                ShowAllStr => ShowAll(channelRepo),
-                ViewStr => ViewAsync(channelRepo, userRepo, splitInput[1]),
-                NewStr => NewAsync(channelRepo, userRepo, splitInput[1]),
-                ReturnStr => Task.FromResult(true),
-                _ => null
-            };
-            if (result is null) Console.WriteLine("Command not recognized.");
-            else if (result.GetAwaiter().GetResult()) break;
+            try {
+                var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
+                Console.WriteLine();
+                var result = splitInput[0] switch {
+                    HelpStr => ShowHelp(),
+                    ShowAllStr => ShowAll(channelRepo),
+                    ViewStr => ViewAsync(channelRepo, userRepo, splitInput[1]),
+                    NewStr => NewAsync(channelRepo, userRepo, splitInput[1]),
+                    DeleteStr => DeleteAsync(channelRepo, splitInput[1]),
+                    ReturnStr => Task.FromResult(true),
+                    _ => null
+                };
+                if (result is null) Console.WriteLine("Command not recognized.");
+                else if (result.GetAwaiter().GetResult()) break;
+            }
+            catch (Exception) {
+                Console.WriteLine("Could not understand command or arguments.");
+                throw;
+            }
         }
         Console.Clear();
         Console.WriteLine($"LoreIt - Main ({DateTime.Now})\n");
@@ -54,7 +61,7 @@ public static class ChannelLoop {
             .AppendLine($"{ShowAllStr} - Views all registered channels.")
             .AppendLine($"{ViewStr} channelId - Displays detailed information about a channel given it's unique identifier.")
             .AppendLine($"{NewStr} channelTitle - Creates a new channel.")
-            .AppendLine($"{DeleteStr} - Deletes a channel given it's unique identifier from the service.")
+            .AppendLine($"{DeleteStr} channelId - Deletes a channel given it's unique identifier from the service.")
             .AppendLine($"{ReturnStr} - Return to the main application.");
         Console.WriteLine(help.ToString());
         return Task.FromResult(false);
@@ -102,12 +109,43 @@ public static class ChannelLoop {
     /// <param name="title">The title of the new channel.</param>
     /// <return>A task that represents the asynchronous operation, containing a boolean value indicating whether the channel creation was successful.</return>
     private static async Task<bool> NewAsync(IChannelRepo channelRepo, IUserRepo userRepo, string title) {
-        if (SignInLoop.LoginUsername is null) {
+        if (CheckLogin()) {
             Console.WriteLine("You are not logged in!");
             return false;
         }
-        var user = await userRepo.GetByUsernameAsync(SignInLoop.LoginUsername);
-        await channelRepo.AddAsync(new Channel(user.Id, title));
+        try {
+            var user = await userRepo.GetByUsernameAsync(SignInLoop.LoginUsername!);
+            await channelRepo.AddAsync(new Channel(user.Id, title));
+        }
+        catch (InvalidOperationException e) {
+            Console.WriteLine(e.Message);
+            throw;
+        }
         return true;
+    }
+    
+    /// Deletes a channel asynchronously by ID.
+    /// <param name="channelRepo">The repository interface for accessing and managing channel.</param>
+    /// <param name="channelId">The ID of the channel to be deleted.</param>
+    /// <return>A task that represents the asynchronous operation, containing a boolean value indicating whether the post was successfully deleted or not.</return>
+    private static async Task<bool> DeleteAsync(IChannelRepo channelRepo, string channelId) {
+        if (CheckLogin()) {
+            Console.WriteLine("You are not logged in!");
+            return false;
+        }
+        try {
+            await channelRepo.DeleteAsync(int.Parse(channelId));
+        }
+        catch (Exception) {
+            Console.WriteLine("Error managing argument.");
+            throw;
+        }
+        return true;
+    }
+    
+    /// Checks if the user is logged in.
+    /// <return>A boolean value indicating whether the user is logged in or not.</return>
+    private static bool CheckLogin() {
+        return SignInLoop.LoginUsername is not null;
     }
 }

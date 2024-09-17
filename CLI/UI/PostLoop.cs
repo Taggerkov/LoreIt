@@ -24,20 +24,27 @@ public static class PostLoop {
         Console.Clear();
         Console.WriteLine($"LoreIt - Post ({DateTime.Now})\n");
         while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)) {
-            Console.WriteLine("Please enter your command: ");
+            Console.WriteLine("\nPlease enter your command: ");
             var userInput = Console.ReadLine() ?? string.Empty;
-            var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
-            Console.WriteLine();
-            var result = splitInput[0] switch {
-                HelpStr => ShowHelp(),
-                ShowAllStr => ShowAll(postRepo),
-                ViewStr => ViewAsync(postRepo, userRepo, splitInput[1]),
-                NewStr => NewAsync(postRepo, userRepo, splitInput[1]),
-                ReturnStr => Task.FromResult(true),
-                _ => null
-            };
-            if (result is null) Console.WriteLine("Command not recognized.");
-            else if (result.GetAwaiter().GetResult()) break;
+            try {
+                var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
+                Console.WriteLine();
+                var result = splitInput[0] switch {
+                    HelpStr => ShowHelp(),
+                    ShowAllStr => ShowAll(postRepo),
+                    ViewStr => ViewAsync(postRepo, userRepo, splitInput[1]),
+                    NewStr => NewAsync(postRepo, userRepo, splitInput[1], splitInput[2]),
+                    DeleteStr => DeleteAsync(postRepo, splitInput[1]),
+                    ReturnStr => Task.FromResult(true),
+                    _ => null
+                };
+                if (result is null) Console.WriteLine("Command not recognized.");
+                else if (result.GetAwaiter().GetResult()) break;
+            }
+            catch (Exception e) {
+                Console.WriteLine("Could not understand command or arguments.");
+                throw;
+            }
         }
         Console.Clear();
         Console.WriteLine($"LoreIt - Main ({DateTime.Now})\n");
@@ -51,8 +58,8 @@ public static class PostLoop {
         help.AppendLine("List of available commands:").AppendLine($"{HelpStr} - Shows all available commands.")
             .AppendLine($"{ShowAllStr} - Views all registered posts.")
             .AppendLine($"{ViewStr} postId - Displays detailed information about a post given it's unique identifier.")
-            .AppendLine($"{NewStr} postTitle - Creates a new post.")
-            .AppendLine($"{DeleteStr} - Deletes a post given it's unique identifier from the service.")
+            .AppendLine($"{NewStr} postTitle channelIdIfAny - Creates a new post.")
+            .AppendLine($"{DeleteStr} postId - Deletes a post given it's unique identifier from the service.")
             .AppendLine($"{ReturnStr} - Return to the main application.");
         Console.WriteLine(help.ToString());
         return Task.FromResult(false);
@@ -98,14 +105,60 @@ public static class PostLoop {
     /// <param name="postRepo">The repository instance handling post data interactions.</param>
     /// <param name="userRepo">The repository instance handling user data interactions.</param>
     /// <param name="title">The title of the new post.</param>
+    ///  /// <param name="channelIdIfAny">Channel ID to register the post into</param>
     /// <return>A task that represents the asynchronous operation, containing a boolean value indicating whether the channel creation was successful.</return>
-    private static async Task<bool> NewAsync(IPostRepo postRepo, IUserRepo userRepo, string title) {
-        if (SignInLoop.LoginUsername is null) {
+    private static async Task<bool> NewAsync(IPostRepo postRepo, IUserRepo userRepo, string title, string? channelIdIfAny = null) {
+        if (CheckLogin()) {
             Console.WriteLine("You are not logged in!");
             return false;
         }
-        var user = await userRepo.GetByUsernameAsync(SignInLoop.LoginUsername);
-        await postRepo.AddAsync(new Post(user.Id, title));
+        int? channelId;
+        if (channelIdIfAny is null) {
+            channelId = null;
+        } else {
+            try {
+                channelId = int.Parse(channelIdIfAny);
+            }
+            catch (Exception e) {
+                Console.WriteLine(e.Message);
+                throw;
+            }
+        }
+        Console.WriteLine("\nWrite your Post:");
+        try {
+            var user = await userRepo.GetByUsernameAsync(SignInLoop.LoginUsername!);
+            await postRepo.AddAsync(new Post(user.Id, title, Console.ReadLine() ?? string.Empty, channelId));
+        }
+        catch (InvalidOperationException e) {
+            Console.WriteLine(e.Message);
+            throw;
+        }
+        Console.WriteLine("Post was successfully registered.");
         return true;
+    }
+
+    /// Deletes a post asynchronously by ID.
+    /// <param name="postRepo">The repository interface for accessing and managing posts.</param>
+    /// <param name="postId">The ID of the post to be deleted.</param>
+    /// <return>A task that represents the asynchronous operation, containing a boolean value indicating whether the post was successfully deleted or not.</return>
+    private static async Task<bool> DeleteAsync(IPostRepo postRepo, string postId) {
+        if (CheckLogin()) {
+            Console.WriteLine("You are not logged in!");
+            return false;
+        }
+        try {
+            await postRepo.DeleteAsync(int.Parse(postId));
+        }
+        catch (Exception) {
+            Console.WriteLine("Error managing argument.");
+            throw;
+        }
+        return true;
+    }
+
+    /// Checks if the user is logged in.
+    /// <return>A boolean value indicating whether the user is logged in or not.</return>
+    private static bool CheckLogin() {
+        return SignInLoop.LoginUsername is not null;
     }
 }

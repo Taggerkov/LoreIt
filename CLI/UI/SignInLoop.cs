@@ -26,20 +26,26 @@ public static class SignInLoop {
         Console.Clear();
         Console.WriteLine($"LoreIt - Login ({DateTime.Now})\n");
         while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)) {
-            Console.WriteLine("Please enter your command: ");
+            Console.WriteLine("\nPlease enter your command: ");
             var userInput = Console.ReadLine() ?? string.Empty;
-            var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
-            Console.WriteLine();
-            var result = splitInput[0] switch {
-                HelpStr => ShowHelp(),
-                LoginStr => LoginAsync(userRepo, splitInput[1], splitInput[2]),
-                SignupStr => SignUpAsync(userRepo, splitInput[1], splitInput[2]),
-                LogoutStr => LogOut(),
-                ReturnStr => Task.FromResult(true),
-                _ => null
-            };
-            if (result is null) Console.WriteLine("Command not recognized.");
-            else if (result.GetAwaiter().GetResult()) break;
+            try {
+                var splitInput = userInput.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
+                Console.WriteLine();
+                var result = splitInput[0] switch {
+                    HelpStr => ShowHelp(),
+                    LoginStr => LoginAsync(userRepo, splitInput[1], splitInput[2]),
+                    SignupStr => SignUpAsync(userRepo, splitInput[1], splitInput[2]),
+                    LogoutStr => LogOut(),
+                    ReturnStr => Task.FromResult(true),
+                    _ => null
+                };
+                if (result is null) Console.WriteLine("Command not recognized.");
+                else if (result.GetAwaiter().GetResult()) break;
+            }
+            catch (Exception) {
+                Console.WriteLine("Could not understand command or arguments.");
+                throw;
+            }
         }
         Console.Clear();
         Console.WriteLine($"LoreIt - Main ({DateTime.Now})\n");
@@ -65,12 +71,21 @@ public static class SignInLoop {
     /// <param name="password">The password of the existing user.</param>
     /// <return>A task that represents the asynchronous operation, containing a boolean value indicating if the application should return to the mainLoop</return>
     private static async Task<bool> LoginAsync(IUserRepo userRepo, string username, string password) {
-        var user = await userRepo.GetByUsernameAsync(username);
-        if (!user.CheckPassword(password)) return false;
-        Console.WriteLine($"You have logged in as {user.Username}.");
-        Thread.Sleep(1000);
-        LoginUsername = username;
-        return true;
+        try {
+            var user = await userRepo.GetByUsernameAsync(username);
+            if (!user.CheckPassword(password)) {
+                Console.WriteLine("Invalid password.");
+                return false;
+            }
+            Console.WriteLine($"You have logged in as {user.Username}.");
+            Thread.Sleep(1000);
+            LoginUsername = username;
+            return true;
+        }
+        catch (InvalidOperationException e) {
+            Console.WriteLine(e.Message);
+            throw;
+        }
     }
 
     /// Registers a new user with the given username and password.
