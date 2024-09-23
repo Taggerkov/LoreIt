@@ -4,7 +4,9 @@ using ServerEntities;
 
 namespace CLI.UI;
 
+
 /// Provides an interface for handling channel-related commands within the command-line interface.
+[Obsolete("In Memory implementation, test-only usage.", false)]
 public static class ChannelLoop {
     /// Represents the command string that triggers the channel operation.
     private const string HelpStr = "!help",
@@ -71,7 +73,7 @@ public static class ChannelLoop {
     /// <param name="channelRepo">The repository instance handling channel data interactions.</param>
     /// <return>A task representing the asynchronous operation, containing a boolean value indicating if the application should return to the main loop.</return>
     private static Task<bool> ShowAll(IChannelRepo channelRepo) {
-        var channels = channelRepo.GetAllChannels();
+        var channels = channelRepo.GetAll();
         Console.WriteLine("Available channels:");
         if (channels.Count() > 1) {
             Console.WriteLine("No available channels found...");
@@ -89,7 +91,7 @@ public static class ChannelLoop {
     private static async Task<bool> ViewAsync(IChannelRepo channelRepo, IUserRepo userRepo, string channelId) {
         try {
             var channel = await channelRepo.GetAsync(int.Parse(channelId));
-            var user = await userRepo.GetByIdAsync(channel.OwnerId);
+            var user = await userRepo.GetAsync(channel.OwnerId);
             var msg = new StringBuilder();
             msg.AppendLine($"{channel.Title} - {channel.Id} // Channel Details:").AppendLine($"Id: {channel.Id}").AppendLine($"Title: {channel.Title}")
                 .AppendLine($"Owner: {user.Username}").AppendLine($"Description: {channel.Description}").AppendLine($"Rules: {channel.Rules}")
@@ -123,7 +125,7 @@ public static class ChannelLoop {
         }
         return true;
     }
-    
+
     /// Deletes a channel asynchronously by ID.
     /// <param name="channelRepo">The repository interface for accessing and managing channel.</param>
     /// <param name="channelId">The ID of the channel to be deleted.</param>
@@ -142,7 +144,7 @@ public static class ChannelLoop {
         }
         return true;
     }
-    
+
     /// Checks if the user is logged in.
     /// <return>A boolean value indicating whether the user is logged in or not.</return>
     private static bool CheckLogin() {

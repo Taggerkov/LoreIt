@@ -1,12 +1,13 @@
-﻿using MemoryRepo.Util;
+﻿using MemoryImpl.Util;
 using ServerEntities;
 using RepoContracts;
 using ServerEntities.Util;
 
-namespace MemoryRepo;
+namespace MemoryImpl;
 
 /// Provides an implementation of the IUserRepo interface with CRUD operations for managing User entities in memory.
-public class UserImpl : ICrud, IUserRepo {
+[Obsolete("In Memory implementation, test-only usage.", false)]
+public class UserMemory : ICrud, IUserRepo {
     /// Represents a collection of User entities managed by the repository.
     private List<User> Users { get; set; } = [];
 
@@ -17,7 +18,7 @@ public class UserImpl : ICrud, IUserRepo {
     /// <returns>
     /// An IQueryable collection of User entities from the repository.
     /// </returns>
-    public IQueryable<User> GetAllUsers() {
+    public IQueryable<User> GetAll() {
         return Users.AsQueryable();
     }
 
@@ -26,7 +27,7 @@ public class UserImpl : ICrud, IUserRepo {
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains the user with the specified identifier.
     /// </returns>
-    public Task<User> GetByIdAsync(int id) {
+    public Task<User> GetAsync(int id) {
         if (ICrud.Read(GetGenericList(), id, EntityType) is User user) return Task.FromResult(user);
         throw new Exception("Couldn't read User or possible data corruption.");
     }

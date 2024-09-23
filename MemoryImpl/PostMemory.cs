@@ -1,12 +1,13 @@
-﻿using MemoryRepo.Util;
+﻿using MemoryImpl.Util;
 using RepoContracts;
 using ServerEntities;
 using ServerEntities.Util;
 
-namespace MemoryRepo;
+namespace MemoryImpl;
 
 /// Implementation of post-related operations in memory repository.
-public class PostImpl : ICrud, IPostRepo {
+[Obsolete("In Memory implementation, test-only usage.", false)]
+public class PostMemory : ICrud, IPostRepo {
     /// <summary>
     /// Represents the collection of posts managed within the repository.
     /// Provides methods to interact with and manipulate post data.
@@ -21,7 +22,7 @@ public class PostImpl : ICrud, IPostRepo {
 
     /// Retrieves all posts available in the repository.
     /// <returns>An IQueryable containing all posts.</returns>
-    public IQueryable<Post> GetAllPosts() {
+    public IQueryable<Post> GetAll() {
         return Posts.AsQueryable();
     }
 

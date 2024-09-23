@@ -1,12 +1,13 @@
-﻿using MemoryRepo.Util;
+﻿using MemoryImpl.Util;
 using RepoContracts;
 using ServerEntities;
 using ServerEntities.Util;
 
-namespace MemoryRepo;
+namespace MemoryImpl;
 
 /// Represents an implementation of the IChannelRepo interface providing CRUD operations for channels.
-public class ChannelImpl : ICrud, IChannelRepo {
+[Obsolete("In Memory implementation, test-only usage.", false)]
+public class ChannelMemory : ICrud, IChannelRepo {
     /// The list of Channel entities managed by the repository.
     private List<Channel> Channels { get; set; } = [];
 
@@ -15,7 +16,7 @@ public class ChannelImpl : ICrud, IChannelRepo {
 
     /// Retrieves all channels.
     /// <return>An IQueryable collection containing all channels.</return>
-    public IQueryable<Channel> GetAllChannels() {
+    public IQueryable<Channel> GetAll() {
         return Channels.AsQueryable();
     }
 

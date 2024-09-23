@@ -69,7 +69,7 @@ public static class PostLoop {
     /// <param name="postRepo">The repository instance handling post data interactions.</param>
     /// <return>A task representing the asynchronous operation, containing a boolean value indicating if the application should return to the main loop.</return>
     private static Task<bool> ShowAll(IPostRepo postRepo) {
-        var posts = postRepo.GetAllPosts();
+        var posts = postRepo.GetAll();
         Console.WriteLine("Available posts:");
         if (posts.Count() > 1) {
             Console.WriteLine("No available posts found...");
@@ -87,7 +87,7 @@ public static class PostLoop {
     private static async Task<bool> ViewAsync(IPostRepo postRepo, IUserRepo userRepo, string postId) {
         try {
             var post = await postRepo.GetAsync(int.Parse(postId));
-            var user = await userRepo.GetByIdAsync(post.AuthorId);
+            var user = await userRepo.GetAsync(post.AuthorId);
             var msg = new StringBuilder();
             msg.AppendLine($"{post.Title} - {post.Id} // Post Details:").AppendLine($"Id: {post.Id}").AppendLine($"Title: {post.Title}")
                 .AppendLine($"Owner: {user.Username}").AppendLine($"Content: {post.Content}").AppendLine($"Tags: {post.Tags}")

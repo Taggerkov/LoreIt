@@ -63,7 +63,7 @@ public static class UserLoop {
     /// <param name="userRepo">The user repository to retrieve all users from.</param>
     /// <return>A task that represents the asynchronous operation, containing a boolean value indicating if the operation was successful</return>
     private static Task<bool> ShowAll(IUserRepo userRepo) {
-        var allUsers = userRepo.GetAllUsers();
+        var allUsers = userRepo.GetAll();
         Console.WriteLine("Available users:");
         if (allUsers.Count() > 1) {
             Console.WriteLine("No available users found...");
@@ -79,7 +79,7 @@ public static class UserLoop {
     /// <return>A task that represents the asynchronous operation, containing a boolean value indicating if the view operation was successful.</return>
     private static async Task<bool> View(IUserRepo userRepo, string userId) {
         try {
-            var user = await userRepo.GetByIdAsync(int.Parse(userId));
+            var user = await userRepo.GetAsync(int.Parse(userId));
             var msg = new StringBuilder();
             msg.AppendLine($"{user.Username} - {user.Id} // User Details:").AppendLine($"Id: {user.Id}").AppendLine($"Username: {user.Username}")
                 .AppendLine($"Email: {user.Email}").AppendLine($"Is Admin: {user.IsAdmin}").AppendLine($"Publish Date: {user.PublishDate}")

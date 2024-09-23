@@ -94,7 +94,7 @@ public static class SignInLoop {
     /// <param name="password">The password for the new user.</param>
     /// <return>A task that represents the asynchronous operation, containing a boolean value indicating if the application should return to the mainLoop</return>
     private static async Task<bool> SignUpAsync(IUserRepo userRepo, string username, string password) {
-        var allUsers = userRepo.GetAllUsers();
+        var allUsers = userRepo.GetAll();
         foreach (var u in allUsers)
             if (u.Username == username) {
                 Console.WriteLine($"User {username} already exists.");

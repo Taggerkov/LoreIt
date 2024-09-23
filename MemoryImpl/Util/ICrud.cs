@@ -1,8 +1,9 @@
 ﻿using ServerEntities.Util;
 
-namespace MemoryRepo.Util;
+namespace MemoryImpl.Util;
 
 /// ICrud interface provides basic CRUD operations for managing collections of IServerEntity objects.
+[Obsolete("In Memory implementation, test-only usage.", false)]
 internal interface ICrud {
     /// Adds a new IServerEntity item to a given list of entities.
     /// <param name="query">The collection of existing entities.</param>

@@ -1,14 +1,14 @@
 ﻿using System.Text;
 using CLI.UI;
-using MemoryRepo;
+using LocalImpl;
 
 var init = new StringBuilder();
-init.AppendLine("Welcome to the LoreIt!").AppendLine("Using v0.2 // Logic: Local - Storage: In Memory")
+init.AppendLine("Welcome to the LoreIt!").AppendLine("Using v0.3 // Logic: Local - Storage: Local Files")
     .AppendLine($"Today is: {DateTime.Now.ToShortDateString()}").AppendLine("\nGit: https://github.com/Taggerkov/LoreIt")
     .AppendLine("Use '!help' command to get a list of available commands.");
 Console.WriteLine(init.ToString());
 try {
-    var cliApp = new CliApp(new UserImpl(), new ChannelImpl(), new PostImpl(), new CommentImpl());
+    var cliApp = new CliApp(UserLocal.Get(), ChannelLocal.Get(), PostLocal.Get(), CommentLocal.Get());
     await cliApp.Run();
 }
 catch (Exception) {

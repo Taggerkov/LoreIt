@@ -1,12 +1,13 @@
-﻿using MemoryRepo.Util;
+﻿using MemoryImpl.Util;
 using RepoContracts;
 using ServerEntities;
 using ServerEntities.Util;
 
-namespace MemoryRepo;
+namespace MemoryImpl;
 
 /// Represents a comment repository implementing ICrud and ICommentRepo interfaces.
-public class CommentImpl : ICrud, ICommentRepo {
+[Obsolete("In Memory implementation, test-only usage.", false)]
+public class CommentMemory : ICrud, ICommentRepo {
     /// <summary>
     /// Holds the collection of comments in the repository.
     /// Provides methods for managing comments, including adding, updating, and deleting comments.
@@ -21,7 +22,7 @@ public class CommentImpl : ICrud, ICommentRepo {
 
     /// Retrieves all comments available in the repository.
     /// <return>An IQueryable collection of all comments.</return>
-    public IQueryable<Comment> GetAllComments() {
+    public IQueryable<Comment> GetAll() {
         return Comments.AsQueryable();
     }
 

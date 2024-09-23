@@ -71,7 +71,7 @@ public static class CommentLoop {
     /// <param name="commentRepo">The repository instance handling comment data interactions.</param>
     /// <return>A task representing the asynchronous operation, containing a boolean value indicating if the application should return to the main loop.</return>
     private static Task<bool> ShowAll(ICommentRepo commentRepo) {
-        var comments = commentRepo.GetAllComments();
+        var comments = commentRepo.GetAll();
         Console.WriteLine("Available users:");
         if (comments.Count() > 1) {
             Console.WriteLine("No available users found...");
@@ -90,7 +90,7 @@ public static class CommentLoop {
     private static async Task<bool> ViewAsync(ICommentRepo commentRepo, IPostRepo postRepo, IUserRepo userRepo, string commentId) {
         try {
             var comment = await commentRepo.GetAsync(int.Parse(commentId));
-            var user = await userRepo.GetByIdAsync(comment.CommenterId);
+            var user = await userRepo.GetAsync(comment.CommenterId);
             var post = await postRepo.GetAsync(comment.PostId);
             var msg = new StringBuilder();
             msg.AppendLine($"Comment - {comment.Id} // Comment Details:").AppendLine($"Id: {comment.Id}").AppendLine($"From Post: {post.Title}")
