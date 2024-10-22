@@ -40,7 +40,7 @@ public sealed class ChannelLocal : EntityLocal<Channel>, IChannelRepo {
     /// A sealed class that provides local storage and operations for Channel entities.
     /// Implements the IChannelRepo interface for managing Channel data locally.
     /// </summary>
-    private ChannelLocal() {
+    public ChannelLocal() {
         Build(EntityType);
     }
 

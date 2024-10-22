@@ -38,7 +38,7 @@ public sealed class PostLocal : EntityLocal<Post>, IPostRepo {
     /// <summary>
     /// Local implementation of the post repository.
     /// </summary>
-    private PostLocal() {
+    public PostLocal() {
         Build(EntityType);
     }
 

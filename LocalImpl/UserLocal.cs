@@ -41,7 +41,7 @@ public sealed class UserLocal : EntityLocal<User>, IUserRepo {
     /// <summary>
     /// Provides local implementation for User repository following singleton pattern.
     /// </summary>
-    private UserLocal() {
+    public UserLocal() {
         Build(EntityType);
     }
 

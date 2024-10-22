@@ -43,7 +43,7 @@ public sealed class CommentLocal : EntityLocal<Comment>, ICommentRepo {
     }
 
     /// Provides local data access functionality for Comment entities.
-    private CommentLocal() {
+    public CommentLocal() {
         Build(EntityType);
     }
 
