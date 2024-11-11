@@ -1,0 +1,43 @@
+﻿@page "/posts"
+@using APILibrary
+@using BlazorWeb.Services.HTTP
+@inject HttpClient Http
+@attribute [StreamRendering]
+
+<PageTitle>Posts</PageTitle>
+
+<h1>Posts</h1>
+
+<p>Browsing all posts:</p>
+
+@if (_posts == null) { <p><em>Loading...</em></p> } 
+else {
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Id</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var post in _posts) {
+            <tr>
+                <td>@post.Title</td>
+                <td>@post.AuthorId</td>
+                <td>@post.Id</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IQueryable<PostDto>? _posts;
+    private PostHttp? _httpPosts;
+
+    protected override async Task OnInitializedAsync() {
+        _httpPosts = new PostHttp(Http);
+        _posts = _httpPosts.GetAll();
+    }
+}

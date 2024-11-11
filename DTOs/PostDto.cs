@@ -15,6 +15,10 @@ public class PostDto {
     public string Title { get; set; }
 
     /// <summary>
+    /// Gets or sets the identifier for the author associated with the post.
+    /// </summary>
+    public int AuthorId { get; set; }
+    /// <summary>
     /// Gets or sets the textual content of the post.
     /// </summary>
     public string Content { get; set; }

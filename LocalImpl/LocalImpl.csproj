@@ -10,4 +10,8 @@
       <ProjectReference Include="..\RepoContracts\RepoContracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="BouncyCastle.NetCore" Version="2.2.1" />
+    </ItemGroup>
+
 </Project>

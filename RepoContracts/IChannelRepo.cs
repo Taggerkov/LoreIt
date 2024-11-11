@@ -5,5 +5,4 @@ namespace RepoContracts;
 
 /// Interface for channel repository operations.
 public interface IChannelRepo : IServerEntityRepo<Channel>{
-   
 }
