@@ -10,28 +10,28 @@ public interface IUserService {
     /// Retrieves all users from the data store.
     /// </summary>
     /// <returns>An IQueryable collection of UserDto objects containing the details of all users.</returns>
-    public IQueryable<UserDto>? GetAll();
+    public IQueryable<UserDto?> GetAll();
 
     /// <summary>
     /// Retrieves a user asynchronously based on the provided user ID.
     /// </summary>
     /// <param name="id">The ID of the user to be retrieved.</param>
     /// <returns>A Task representing the asynchronous operation, with a UserDto containing the details of the retrieved user.</returns>
-    public Task<UserDto> GetAsync(string id);
+    public Task<UserDto?> GetAsync(int id);
 
     /// <summary>
     /// Retrieves a user asynchronously based on the provided username.
     /// </summary>
     /// <param name="username">The username of the user to be retrieved.</param>
     /// <returns>A Task representing the asynchronous operation, with a UserDto containing the details of the retrieved user.</returns>
-    public Task<UserDto> GetByUsernameAsync(string username);
+    public Task<UserDto?> GetByUsernameAsync(string username);
 
     /// <summary>
     /// Retrieves a user asynchronously based on the provided email.
     /// </summary>
     /// <param name="email">The email of the user to be retrieved.</param>
     /// <returns>A Task representing the asynchronous operation, with a UserDto containing the details of the retrieved user.</returns>
-    public Task<UserDto> GetByEmailAsync(string email);
+    public Task<UserDto?> GetByEmailAsync(string email);
 
     /// <summary>
     /// Adds a new user asynchronously based on the provided user data.

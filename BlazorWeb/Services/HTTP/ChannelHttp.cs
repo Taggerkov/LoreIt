@@ -42,7 +42,7 @@ public class ChannelHttp(HttpClient client) : IChannelService {
     /// <param name="id">The identifier of the channel to retrieve.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the retrieved ChannelDto.</returns>
     /// <exception cref="Exception">Thrown when the retrieval operation fails.</exception>
-    public async Task<ChannelDto> GetAsync(string id) {
+    public async Task<ChannelDto> GetAsync(int id) {
         var httpResponse = await client.GetFromJsonAsync<ChannelDto>($"{BaseUrl}/{id}");
         if (httpResponse == null) throw new Exception("Failed to retrieve user.");
         return httpResponse;

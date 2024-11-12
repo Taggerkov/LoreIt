@@ -1,43 +1,53 @@
 ﻿@page "/posts"
 @using APILibrary
-@using BlazorWeb.Services.HTTP
-@inject HttpClient Http
-@attribute [StreamRendering]
+@using BlazorWeb.Services
+@inject IPostService PostService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
 
-<PageTitle>Posts</PageTitle>
+<h3>All Posts</h3>
 
-<h1>Posts</h1>
-
-<p>Browsing all posts:</p>
-
-@if (_posts == null) { <p><em>Loading...</em></p> } 
-else {
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Id</th>
-        </tr>
-        </thead>
-        <tbody>
+@if (_posts.Count == 0) {
+    <p>Loading posts...</p>
+} else {
+    <ul>
         @foreach (var post in _posts) {
-            <tr>
-                <td>@post.Title</td>
-                <td>@post.AuthorId</td>
-                <td>@post.Id</td>
-            </tr>
+            <li>
+                <a @onclick="() => GoToPostDetails(post.Id)">@post.Title - @GetUsername(post.AuthorId)</a>
+            </li>
         }
-        </tbody>
-    </table>
+    </ul>
 }
 
 @code {
-    private IQueryable<PostDto>? _posts;
-    private PostHttp? _httpPosts;
+    private List<PostDto> _posts = new();
+    private Dictionary<int, string> _usernames = new();
 
     protected override async Task OnInitializedAsync() {
-        _httpPosts = new PostHttp(Http);
-        _posts = _httpPosts.GetAll();
+        var postsQueryable = PostService.GetAll();
+        if (postsQueryable != null) {
+            _posts = postsQueryable.ToList();
+        }
+
+        foreach (var post in _posts) {
+            if (!_usernames.ContainsKey(post.AuthorId)) {
+                var user = await UserService.GetAsync(post.AuthorId);
+                if (user != null) {
+                    _usernames[post.AuthorId] = user.Username;
+                }
+            }
+        }
     }
+
+    private string GetUsername(int authorId) {
+        if (_usernames.TryGetValue(authorId, out var username)) {
+            return username;
+        }
+        return "Unknown User";
+    }
+
+    private void GoToPostDetails(int postId) {
+        NavigationManager.NavigateTo($"/posts/{postId}");
+    }
+
 }

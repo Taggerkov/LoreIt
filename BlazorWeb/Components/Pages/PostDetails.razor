@@ -1,0 +1,74 @@
+﻿@page "/posts/{postId:int}"
+@using APILibrary
+@using BlazorWeb.Services
+@inject IPostService PostService
+@inject IUserService UserService
+@inject ICommentService CommentService
+@page "/posts/{postId:int}"
+
+<h3>@_post?.Title</h3>
+<p>
+    <strong>Author:</strong> @_postAuthor
+</p>
+<p>@_post?.Content</p>
+
+<h4>Comments</h4>
+@if (_comments is null) {
+    <p>Loading comments...</p>
+} else if (!_comments.Any()) {
+    <p>No comments yet.</p>
+} else {
+    <ul>
+        @foreach (var comment in _comments) {
+            <li>@comment.Content - <em>@GetUsername(comment.CommenterId)</em></li>
+        }
+    </ul>
+}
+
+<h4>Add a Comment</h4>
+<EditForm Model="@_newComment" OnValidSubmit="HandleValidSubmit">
+    <InputTextArea id="content" @bind-Value="_newComment.Content" placeholder="Enter your comment here..." class="form-control"/>
+    <button class="btn btn-primary" type="submit">Submit</button>
+</EditForm>
+
+@code {
+    [Parameter] public int PostId { get; set; }
+
+    private PostDto? _post;
+    private string? _postAuthor;
+    private List<CommentDto>? _comments;
+    private CommentDto _newComment = new();
+
+    protected override async Task OnParametersSetAsync() {
+        _post = await PostService.GetAsync(PostId);
+        if (_post is not null) {
+            var author = await UserService.GetAsync(_post.AuthorId);
+            _postAuthor = author?.Username ?? "Unknown User";
+        }
+        LoadComments();
+    }
+
+    private async void LoadComments() {
+        _comments = CommentService.GetAllFromPost(PostId).ToList();
+        foreach (var comment in _comments) {
+            if (!_usernames.ContainsKey(comment.CommenterId)) {
+                var user = await UserService.GetAsync(comment.CommenterId);
+                if (user != null) {
+                    _usernames[comment.CommenterId] = user.Username;
+                }
+            }
+        }
+    }
+
+    private string GetUsername(int authorId) => _usernames.TryGetValue(authorId, out var username) ? username : "Unknown User";
+
+    private async Task HandleValidSubmit() {
+        _newComment.CommenterId = 0; // TODO...;
+        _newComment.PostId = PostId;
+        await CommentService.AddAsync(_newComment);
+        _newComment = new CommentDto();
+        LoadComments();
+    }
+
+    private readonly Dictionary<int, string> _usernames = new();
+}

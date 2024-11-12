@@ -30,7 +30,7 @@ public interface IPostService {
     /// </summary>
     /// <param name="id">The ID of the post to retrieve.</param>
     /// <returns>A Task representing the asynchronous operation, with a PostDto object as the result containing the retrieved post data.</returns>
-    public Task<PostDto> GetAsync(string id);
+    public Task<PostDto> GetAsync(int id);
 
     /// <summary>
     /// Adds a new post asynchronously using the provided PostDto data.

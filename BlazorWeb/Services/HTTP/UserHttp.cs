@@ -30,10 +30,10 @@ public class UserHttp(HttpClient client) : IUserService {
     /// </summary>
     /// <returns>An <see cref="IQueryable{UserDto}"/> containing all users.</returns>
     /// <exception cref="Exception">Thrown when the retrieval operation fails.</exception>
-    public IQueryable<UserDto>? GetAll() {
+    public IQueryable<UserDto?> GetAll() {
         var httpResponse = client.GetFromJsonAsync<IQueryable<UserDto>>(BaseUrl);
         if (httpResponse is null) throw new Exception("Failed to retrieve users.");
-        return httpResponse.Result;
+        return httpResponse.Result!;
     }
 
     /// <summary>
@@ -42,18 +42,34 @@ public class UserHttp(HttpClient client) : IUserService {
     /// <param name="id">The unique identifier of the user.</param>
     /// <returns>A Task representing the asynchronous operation, with the result being the retrieved UserDto object.</returns>
     /// <exception cref="Exception">Thrown when the retrieval operation fails.</exception>
-    public async Task<UserDto> GetAsync(string id) {
+    public async Task<UserDto?> GetAsync(int id) {
         var httpResponse = await client.GetFromJsonAsync<UserDto>($"{BaseUrl}/{id}");
         if (httpResponse == null) throw new Exception("Failed to retrieve user.");
         return httpResponse;
     }
 
-    public Task<UserDto> GetByUsernameAsync(string username) {
-        throw new NotImplementedException();
+    /// <summary>
+    /// Retrieves a user by their username.
+    /// </summary>
+    /// <param name="username">The username of the user.</param>
+    /// <returns>A Task representing the asynchronous operation, with the result being the retrieved UserDto object.</returns>
+    /// <exception cref="Exception">Thrown when the retrieval operation fails.</exception>
+    public async Task<UserDto?> GetByUsernameAsync(string username) {
+        var httpResponse = await client.GetFromJsonAsync<UserDto>($"{BaseUrl}/by-username/{username}");
+        if (httpResponse == null) throw new Exception("User not found.");
+        return httpResponse;
     }
 
-    public Task<UserDto> GetByEmailAsync(string email) {
-        throw new NotImplementedException();
+    /// <summary>
+    /// Retrieves a user by their email.
+    /// </summary>
+    /// <param name="email">The email of the user.</param>
+    /// <returns>A Task representing the asynchronous operation, with the result being the retrieved UserDto object.</returns>
+    /// <exception cref="Exception">Thrown when the retrieval operation fails.</exception>
+    public async Task<UserDto?> GetByEmailAsync(string email) {
+        var httpResponse = await client.GetFromJsonAsync<UserDto>($"{BaseUrl}/by-email/{email}");
+        if (httpResponse == null) throw new Exception("User not found.");
+        return httpResponse;
     }
 
     /// <summary>

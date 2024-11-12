@@ -24,7 +24,7 @@ public interface ICommentService {
     /// </summary>
     /// <param name="id">The ID of the comment to retrieve.</param>
     /// <returns>A task representing the async retrieval operation, with the retrieved comment.</returns>
-    public Task<CommentDto> GetAsync(string id);
+    public Task<CommentDto> GetAsync(int id);
 
     /// <summary>
     /// Adds a new comment asynchronously.

@@ -1,0 +1,103 @@
+﻿@page "/user"
+@using APILibrary
+@using BlazorWeb.Services
+@inject IUserService UserService
+
+<h3>Login</h3>
+@if (_loginErrorVisible) {
+    <div class="alert alert-danger">Invalid username or password.</div>
+}
+<EditForm Model="_loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <div class="form-group">
+        <label for="loginUsername">Username:</label>
+        <InputText id="loginUsername" @bind-Value="_loginModel.Username" class="@GetLoginCssClass(_loginErrorVisible)"/>
+        <ValidationMessage For="@(() => _loginModel.Username)"/>
+    </div>
+
+    <div class="form-group">
+        <label for="loginPassword">Password:</label>
+        <InputText id="loginPassword" @bind-Value="_loginModel.Password" type="password" class="@GetLoginCssClass(_loginErrorVisible)"/>
+        <ValidationMessage For="@(() => _loginModel.Password)"/>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</EditForm>
+
+<h3>Sign Up</h3>
+<EditForm Model="_signupModel" OnValidSubmit="HandleSignUp">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <div class="form-group">
+        <label for="signupUsername">Username:</label>
+        <InputText id="signupUsername" @bind-Value="_signupModel.Username"/>
+        <ValidationMessage For="@(() => _signupModel.Username)"/>
+    </div>
+
+    <div class="form-group">
+        <label for="signupPassword">Password:</label>
+        <InputText id="signupPassword" @bind-Value="_signupModel.Password" type="password"/>
+        <ValidationMessage For="@(() => _signupModel.Password)"/>
+    </div>
+
+    <div class="form-group">
+        <label for="signupEmail">Email:</label>
+        <InputText id="signupEmail" @bind-Value="_signupModel.Email"/>
+        <ValidationMessage For="@(() => _signupModel.Email)"/>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Sign Up</button>
+</EditForm>
+
+@code {
+    private UserDto _loginModel = new();
+    private UserDto _signupModel = new();
+    private List<UserDto> _users = [];
+    private bool _loginErrorVisible;
+
+    protected override Task OnInitializedAsync() {
+        var usersQueryable = UserService.GetAll();
+        if (usersQueryable != null) {
+            _users = usersQueryable.ToList();
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task HandleLogin() {
+        try {
+            var user = _users.FirstOrDefault(u => u.Username == _loginModel.Username && u.Password == _loginModel.Password);
+            if (user != null) {
+                Console.WriteLine("Login successful.");
+                _loginErrorVisible = false;
+                // TODO...
+            } else {
+                _loginErrorVisible = true;
+            }
+            return Task.CompletedTask;
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"Login failed: {ex.Message}");
+            _loginErrorVisible = true;
+            return Task.FromException(ex);
+        }
+    }
+
+    private async Task HandleSignUp() {
+        try {
+            var user = await UserService.AddAsync(_signupModel);
+            _users.Add(user);
+            Console.WriteLine($"Sign up successful. User ID: {user.Id}");
+            // Add your sign-up success logic here
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"Sign up failed: {ex.Message}");
+        }
+    }
+
+    private static string GetLoginCssClass(bool loginError) {
+        return loginError ? "form-control is-invalid" : "form-control";
+    }
+}

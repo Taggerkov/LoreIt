@@ -17,7 +17,7 @@ public interface IChannelService {
     /// </summary>
     /// <param name="id">The identifier of the channel to be retrieved.</param>
     /// <returns>A task representing the asynchronous operation, containing the retrieved channel data.</returns>
-    public Task<ChannelDto> GetAsync(string id);
+    public Task<ChannelDto> GetAsync(int id);
 
     /// <summary>
     /// Adds a new channel asynchronously.

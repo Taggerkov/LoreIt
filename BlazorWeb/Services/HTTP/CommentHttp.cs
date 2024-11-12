@@ -42,7 +42,7 @@ public class CommentHttp(HttpClient client) : ICommentService{
     /// <param name="id">The identifier of the comment to retrieve.</param>
     /// <returns>A <see cref="Task{CommentDto}"/> representing the asynchronous operation, with a <see cref="CommentDto"/> result containing the comment data.</returns>
     /// <exception cref="Exception">Thrown when the retrieval operation fails.</exception>
-    public async Task<CommentDto> GetAsync(string id) {
+    public async Task<CommentDto> GetAsync(int id) {
         var httpResponse = await client.GetFromJsonAsync<CommentDto>($"{BaseUrl}/{id}");
         if (httpResponse == null) throw new Exception("Failed to retrieve user.");
         return httpResponse;

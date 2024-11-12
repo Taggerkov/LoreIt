@@ -47,7 +47,7 @@ public class PostHttp(HttpClient client) : IPostService {
     /// <param name="id">The identifier of the post to retrieve.</param>
     /// <returns>A Task representing the asynchronous operation, with a PostDto object as the result.</returns>
     /// <exception cref="Exception">Thrown when the retrieval operation fails.</exception>
-    public async Task<PostDto> GetAsync(string id) {
+    public async Task<PostDto> GetAsync(int id) {
         var httpResponse = await client.GetFromJsonAsync<PostDto>($"{BaseUrl}/{id}");
         if (httpResponse == null) throw new Exception("Failed to retrieve user.");
         return httpResponse;
