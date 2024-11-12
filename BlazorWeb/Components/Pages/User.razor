@@ -1,7 +1,11 @@
 ﻿@page "/user"
 @using APILibrary
 @using BlazorWeb.Services
+@using BlazorWeb.Auth
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IUserService UserService
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavigationManager
 
 <h3>Login</h3>
 @if (_loginErrorVisible) {
@@ -55,42 +59,30 @@
 @code {
     private UserDto _loginModel = new();
     private UserDto _signupModel = new();
-    private List<UserDto> _users = [];
     private bool _loginErrorVisible;
 
-    protected override Task OnInitializedAsync() {
-        var usersQueryable = UserService.GetAll();
-        if (usersQueryable != null) {
-            _users = usersQueryable.ToList();
-        }
-        return Task.CompletedTask;
+    protected override async Task OnInitializedAsync() {
+        await base.OnInitializedAsync();
     }
 
-    private Task HandleLogin() {
+    private async Task HandleLogin() {
         try {
-            var user = _users.FirstOrDefault(u => u.Username == _loginModel.Username && u.Password == _loginModel.Password);
-            if (user != null) {
-                Console.WriteLine("Login successful.");
-                _loginErrorVisible = false;
-                // TODO...
-            } else {
-                _loginErrorVisible = true;
-            }
-            return Task.CompletedTask;
+            var authProvider = (SimpleAuthProvider)AuthProvider;
+            await authProvider.LoginASync(_loginModel.Username, _loginModel.Password);
+            Console.WriteLine("Login successful.");
+            _loginErrorVisible = false;
+            NavigationManager.NavigateTo("/");
         }
-        catch (Exception ex) {
-            Console.WriteLine($"Login failed: {ex.Message}");
+        catch (Exception) {
             _loginErrorVisible = true;
-            return Task.FromException(ex);
         }
     }
 
     private async Task HandleSignUp() {
         try {
             var user = await UserService.AddAsync(_signupModel);
-            _users.Add(user);
             Console.WriteLine($"Sign up successful. User ID: {user.Id}");
-            // Add your sign-up success logic here
+            // TODO...
         }
         catch (Exception ex) {
             Console.WriteLine($"Sign up failed: {ex.Message}");

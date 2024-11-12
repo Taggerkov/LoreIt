@@ -9,15 +9,18 @@ public class UserDto {
     /// </summary>
     public int Id { get; set; }
 
-    public string Username { get; set; }
+    /// <summary>
+    /// Gets or sets the username of the user.
+    /// </summary>
+    public string? Username { get; set; }
 
     /// <summary>
     /// Gets or sets the user's password.
     /// </summary>
-    public string Password { get; set; }
+    public string? Password { get; set; }
 
     /// <summary>
     /// Gets or sets the user's email address.
     /// </summary>
-    public string Email { get; set; }
+    public string? Email { get; set; }
 }

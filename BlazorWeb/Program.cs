@@ -1,6 +1,8 @@
+using BlazorWeb.Auth;
 using BlazorWeb.Components;
 using BlazorWeb.Services;
 using BlazorWeb.Services.HTTP;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -9,6 +11,8 @@ RegisterHttpClient<IUserService, UserHttp>(builder.Services, "http://localhost:5
 RegisterHttpClient<IPostService, PostHttp>(builder.Services, "http://localhost:5298/api/Post");
 RegisterHttpClient<ICommentService, CommentHttp>(builder.Services, "http://localhost:5298/api/Comment");
 RegisterHttpClient<IChannelService, ChannelHttp>(builder.Services, "http://localhost:5298/api/Channel");
+builder.Services.AddScoped<AuthenticationStateProvider, SimpleAuthProvider>();
+builder.Services.AddAuthorizationCore();
 var app = builder.Build();
 if (!app.Environment.IsDevelopment()) {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
