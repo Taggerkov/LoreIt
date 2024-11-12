@@ -18,7 +18,7 @@ public class SimpleAuthProvider(HttpClient httpClient, IJSRuntime jsRuntime) : A
     /// <param name="password">The password of the user trying to log in.</param>
     /// <returns>A task that represents the asynchronous operation, which includes updating the authentication state.</returns>
     /// <exception cref="Exception">Thrown when the login attempt fails.</exception>
-    public async Task LoginASync(string? userName, string? password) {
+    public async Task LoginAsync(string? userName, string? password) {
         var response = await httpClient.PostAsJsonAsync("auth/login", new LoginRequest(userName!, password!));
         var content = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode) {

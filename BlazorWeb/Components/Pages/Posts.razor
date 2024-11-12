@@ -5,38 +5,70 @@
 @inject IUserService UserService
 @inject NavigationManager NavigationManager
 
-<h3>All Posts</h3>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <h3 class="text-center my-4">All Posts</h3>
 
-@if (_posts.Count == 0) {
-    <p>Loading posts...</p>
-} else {
-    <ul>
-        @foreach (var post in _posts) {
-            <li>
-                <a @onclick="() => GoToPostDetails(post.Id)">@post.Title - @GetUsername(post.AuthorId)</a>
-            </li>
-        }
-    </ul>
-}
+            @if (_loading) {
+                <div class="d-flex justify-content-center my-4">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            } else if (_errorLoadingPosts) {
+                <div class="alert alert-danger text-center">Error loading posts. Please try again later.</div>
+            } else if (_posts.Count == 0) {
+                <p class="text-center">No posts available.</p>
+            } else {
+                <ul class="list-group">
+                    @foreach (var post in _posts) {
+                        <li class="list-group-item">
+                            <a @onclick="() => GoToPostDetails(post.Id)" class="text-decoration-none d-block">
+                                <strong>@post.Title</strong> - @GetUsername(post.AuthorId)
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     private List<PostDto> _posts = new();
     private Dictionary<int, string> _usernames = new();
+    private bool _loading = true;
+    private bool _errorLoadingPosts = false;
 
     protected override async Task OnInitializedAsync() {
-        var postsQueryable = PostService.GetAll();
-        if (postsQueryable != null) {
-            _posts = postsQueryable.ToList();
+        try {
+            var postsQueryable = PostService.GetAll();
+            if (postsQueryable != null) {
+                _posts = postsQueryable.ToList();
+                await LoadUsernamesAsync();
+            }
         }
+        catch (Exception ex) {
+            Console.WriteLine($"Error loading posts: {ex.Message}");
+            _errorLoadingPosts = true;
+        }
+        finally {
+            _loading = false;
+        }
+    }
 
-        foreach (var post in _posts) {
+    private async Task LoadUsernamesAsync() {
+        var tasks = _posts.Select(async post =>
+        {
             if (!_usernames.ContainsKey(post.AuthorId)) {
                 var user = await UserService.GetAsync(post.AuthorId);
                 if (user != null) {
                     _usernames[post.AuthorId] = user.Username;
                 }
             }
-        }
+        });
+        await Task.WhenAll(tasks);
     }
 
     private string GetUsername(int authorId) {
@@ -49,5 +81,4 @@
     private void GoToPostDetails(int postId) {
         NavigationManager.NavigateTo($"/posts/{postId}");
     }
-
 }

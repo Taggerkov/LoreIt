@@ -66,11 +66,13 @@ public class CommentHttp(HttpClient client) : ICommentService{
     /// </summary>
     /// <param name="id">The unique identifier of the comment to be updated.</param>
     /// <param name="request">A <see cref="CommentDto"/> representing the updated comment data.</param>
-    /// <exception cref="Exception">Thrown when the update operation fails.</exception>
-    public async Task UpdateAsync(int id, CommentDto request) {
+    /// <returns>
+    /// A task that represents the asynchronous update operation. The task result contains a boolean value:
+    /// <c>true</c> if the update operation was successful; otherwise, <c>false</c>.
+    /// </returns>
+    public async Task<bool> UpdateAsync(int id, CommentDto request) {
         var httpResponse = await client.PutAsJsonAsync($"{BaseUrl}/{id}", request);
-        var response = await httpResponse.Content.ReadAsStringAsync();
-        if (!httpResponse.IsSuccessStatusCode) throw new Exception(response);
+        return httpResponse.IsSuccessStatusCode;
     }
 
     /// <summary>

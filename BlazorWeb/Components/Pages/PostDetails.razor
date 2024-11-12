@@ -1,74 +1,204 @@
 ﻿@page "/posts/{postId:int}"
+@using System.Security.Claims
 @using APILibrary
 @using BlazorWeb.Services
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IPostService PostService
 @inject IUserService UserService
 @inject ICommentService CommentService
-@page "/posts/{postId:int}"
+@inject AuthenticationStateProvider AuthProvider
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
 
-<h3>@_post?.Title</h3>
-<p>
-    <strong>Author:</strong> @_postAuthor
-</p>
-<p>@_post?.Content</p>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h3>@_post?.Title</h3>
+            <p>
+                <strong>Author:</strong> @_postAuthor
+            </p>
+            <p>@_post?.Content</p>
+        </div>
+    </div>
 
-<h4>Comments</h4>
-@if (_comments is null) {
-    <p>Loading comments...</p>
-} else if (!_comments.Any()) {
-    <p>No comments yet.</p>
-} else {
-    <ul>
-        @foreach (var comment in _comments) {
-            <li>@comment.Content - <em>@GetUsername(comment.CommenterId)</em></li>
-        }
-    </ul>
-}
+    <div class="row mt-3">
+        <div class="col-12">
+            <h4>Comments</h4>
+            @if (_loadingComments) {
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            } else {
+                <CommentList Comments="_comments" CurrentUserId="_currentUserId" EditComment="_editComment"
+                             EditCommentId="_editCommentId" GetUsername="GetUsername"
+                             StartEdit="StartEdit" CancelEdit="CancelEdit" HandleValidEditSubmit="HandleValidEditSubmit"/>
+            }
+        </div>
+    </div>
 
-<h4>Add a Comment</h4>
-<EditForm Model="@_newComment" OnValidSubmit="HandleValidSubmit">
-    <InputTextArea id="content" @bind-Value="_newComment.Content" placeholder="Enter your comment here..." class="form-control"/>
-    <button class="btn btn-primary" type="submit">Submit</button>
-</EditForm>
+    <div class="row mt-3">
+        <div class="col-12">
+            <h4>Add a Comment</h4>
+            <EditForm Model="@_newComment" OnValidSubmit="@HandleValidSubmit">
+                <div class="mb-3">
+                    <InputTextArea id="content" @bind-Value="_newComment.Content" placeholder="Enter your comment here..." class="form-control"/>
+                </div>
+                <button class="btn btn-primary" type="submit">Submit</button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">@_errorMessage</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter] public int PostId { get; set; }
 
     private PostDto? _post;
     private string? _postAuthor;
-    private List<CommentDto>? _comments;
+    private List<CommentDto>? _comments = [];
     private CommentDto _newComment = new();
+    private CommentDto _editComment = new();
+    private int? _currentUserId;
+    private int? _editCommentId;
+    private readonly Dictionary<int, string> _usernames = new();
+    private string? _errorMessage;
+    private bool _loadingComments = true;
 
     protected override async Task OnParametersSetAsync() {
-        _post = await PostService.GetAsync(PostId);
-        if (_post is not null) {
-            var author = await UserService.GetAsync(_post.AuthorId);
-            _postAuthor = author?.Username ?? "Unknown User";
-        }
-        LoadComments();
+        await LoadPostData();
+        await LoadComments();
     }
 
-    private async void LoadComments() {
-        _comments = CommentService.GetAllFromPost(PostId).ToList();
-        foreach (var comment in _comments) {
-            if (!_usernames.ContainsKey(comment.CommenterId)) {
-                var user = await UserService.GetAsync(comment.CommenterId);
-                if (user != null) {
-                    _usernames[comment.CommenterId] = user.Username;
-                }
+    private async Task LoadPostData() {
+        try {
+            _post = await PostService.GetAsync(PostId);
+            if (_post != null) {
+                var author = await UserService.GetAsync(_post.AuthorId);
+                _postAuthor = author?.Username ?? "Unknown User";
+            }
+        }
+        catch (Exception ex) {
+            await HandleErrorAsync("Error loading post data: " + ex.Message);
+        }
+    }
+
+    private async Task LoadComments() {
+        try {
+            _loadingComments = true;
+            _comments = CommentService.GetAllFromPost(PostId).ToList();
+            await CacheUsernames(_comments);
+        }
+        finally {
+            _loadingComments = false;
+        }
+        StateHasChanged();
+    }
+
+    private async Task CacheUsernames(IEnumerable<CommentDto> comments) {
+        var commenterIdsToFetch = comments
+            .Where(c => !_usernames.ContainsKey(c.CommenterId))
+            .Select(c => c.CommenterId)
+            .Distinct()
+            .ToList();
+
+        foreach (var commenterId in commenterIdsToFetch) {
+            var user = await UserService.GetAsync(commenterId);
+            if (user != null) {
+                _usernames[commenterId] = user.Username!;
             }
         }
     }
 
-    private string GetUsername(int authorId) => _usernames.TryGetValue(authorId, out var username) ? username : "Unknown User";
+    private string GetUsername(int authorId) => _usernames.GetValueOrDefault(authorId, "Unknown User");
 
     private async Task HandleValidSubmit() {
-        _newComment.CommenterId = 0; // TODO...;
-        _newComment.PostId = PostId;
-        await CommentService.AddAsync(_newComment);
-        _newComment = new CommentDto();
-        LoadComments();
+        try {
+            _errorMessage = null;
+            _newComment.CommenterId = await GetCurrentUserIdAsync();
+            _newComment.PostId = PostId;
+            await CommentService.AddAsync(_newComment);
+            _newComment = new CommentDto();
+            await LoadComments();
+        }
+        catch (Exception ex) {
+            await HandleErrorAsync("Error adding comment: " + ex.Message);
+        }
     }
 
-    private readonly Dictionary<int, string> _usernames = new();
+    private async Task<int> GetCurrentUserIdAsync() {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true) {
+            throw new AuthenticationFailureException("User not logged in!");
+        }
+
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!int.TryParse(userIdClaim, out var userId)) {
+            throw new AuthenticationFailureException("Invalid user ID claim.");
+        }
+
+        return userId;
+    }
+
+    private void StartEdit(int commentId, string content) {
+        _editCommentId = commentId;
+        _editComment = new CommentDto {
+            Id = commentId,
+            Content = content
+        };
+    }
+
+    private async Task HandleValidEditSubmit() {
+        try {
+            _errorMessage = null;
+            if (_editCommentId.HasValue) {
+                var result = await CommentService.UpdateAsync(_editComment.Id, _editComment);
+                if (result) {
+                    await LoadComments();
+                    CancelEdit();
+                } else {
+                    await HandleErrorAsync("Error updating comment.");
+                }
+            }
+        }
+        catch (Exception ex) {
+            await HandleErrorAsync("Error updating comment: " + ex.Message);
+        }
+    }
+
+    private void CancelEdit() {
+        _editCommentId = null;
+        _editComment = new CommentDto();
+    }
+
+    private async Task HandleErrorAsync(string errorMessage) {
+        _errorMessage = errorMessage;
+        await ShowErrorMessage();
+    }
+
+    private async Task ShowErrorMessage() {
+        await JSRuntime.InvokeVoidAsync("bootstrapInterop.showModal", "#errorModal");
+        StateHasChanged();
+    }
+
 }

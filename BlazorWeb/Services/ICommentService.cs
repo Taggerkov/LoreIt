@@ -30,7 +30,7 @@ public interface ICommentService {
     /// Adds a new comment asynchronously.
     /// </summary>
     /// <param name="request">The data for the new comment.</param>
-    /// <returns>A task representing the async add operation, with the newly created comment.</returns>
+    /// <returns>A task representing the async adds operation, with the newly created comment.</returns>
     public Task<CommentDto> AddAsync(CommentDto request);
 
     /// <summary>
@@ -38,8 +38,11 @@ public interface ICommentService {
     /// </summary>
     /// <param name="id">The ID of the comment to update.</param>
     /// <param name="request">The new data for the comment.</param>
-    /// <returns>A task representing the async update operation.</returns>
-    public Task UpdateAsync(int id, CommentDto request);
+    /// <returns>
+    /// A task that represents the asynchronous update operation. The task result contains a boolean value:
+    /// <c>true</c> if the update operation was successful; otherwise, <c>false</c>.
+    /// </returns>
+    public Task<bool> UpdateAsync(int id, CommentDto request);
 
     /// <summary>
     /// Deletes a comment asynchronously based on the provided comment ID.

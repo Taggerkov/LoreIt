@@ -1,4 +1,5 @@
 ﻿@page "/user"
+@using System.ComponentModel.DataAnnotations
 @using APILibrary
 @using BlazorWeb.Services
 @using BlazorWeb.Auth
@@ -7,89 +8,123 @@
 @inject AuthenticationStateProvider AuthProvider
 @inject NavigationManager NavigationManager
 
-<h3>Login</h3>
-@if (_loginErrorVisible) {
-    <div class="alert alert-danger">Invalid username or password.</div>
-}
-<EditForm Model="_loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator/>
-    <ValidationSummary/>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
 
-    <div class="form-group">
-        <label for="loginUsername">Username:</label>
-        <InputText id="loginUsername" @bind-Value="_loginModel.Username" class="@GetLoginCssClass(_loginErrorVisible)"/>
-        <ValidationMessage For="@(() => _loginModel.Username)"/>
+            <h3 class="text-center">Login</h3>
+            @if (!string.IsNullOrEmpty(_loginError)) {
+                <div class="alert alert-danger text-center">@_loginError</div>
+            }
+
+            <EditForm Model="_loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
+
+                <div class="mb-3">
+                    <label for="loginUsername">Username:</label>
+                    <InputText id="loginUsername" @bind-Value="_loginModel.Username" class="form-control"/>
+                    <ValidationMessage For="@(() => _loginModel.Username)"/>
+                </div>
+
+                <div class="mb-3">
+                    <label for="loginPassword">Password:</label>
+                    <InputText id="loginPassword" @bind-Value="_loginModel.Password" type="password" class="form-control"/>
+                    <ValidationMessage For="@(() => _loginModel.Password)"/>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </EditForm>
+
+            <hr/>
+
+            <h3 class="text-center">Sign Up</h3>
+            @if (!string.IsNullOrEmpty(_signupError)) {
+                <div class="alert alert-danger text-center">@_signupError</div>
+            }
+
+            <EditForm Model="_signupModel" OnValidSubmit="HandleSignUp">
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
+
+                <div class="mb-3">
+                    <label for="signupUsername">Username:</label>
+                    <InputText id="signupUsername" @bind-Value="_signupModel.Username" class="form-control"/>
+                    <ValidationMessage For="@(() => _signupModel.Username)"/>
+                </div>
+
+                <div class="mb-3">
+                    <label for="signupPassword">Password:</label>
+                    <InputText id="signupPassword" @bind-Value="_signupModel.Password" type="password" class="form-control"/>
+                    <ValidationMessage For="@(() => _signupModel.Password)"/>
+                </div>
+
+                <div class="mb-3">
+                    <label for="signupEmail">Email:</label>
+                    <InputText id="signupEmail" @bind-Value="_signupModel.Email" class="form-control"/>
+                    <ValidationMessage For="@(() => _signupModel.Email)"/>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+            </EditForm>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label for="loginPassword">Password:</label>
-        <InputText id="loginPassword" @bind-Value="_loginModel.Password" type="password" class="@GetLoginCssClass(_loginErrorVisible)"/>
-        <ValidationMessage For="@(() => _loginModel.Password)"/>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Login</button>
-</EditForm>
-
-<h3>Sign Up</h3>
-<EditForm Model="_signupModel" OnValidSubmit="HandleSignUp">
-    <DataAnnotationsValidator/>
-    <ValidationSummary/>
-
-    <div class="form-group">
-        <label for="signupUsername">Username:</label>
-        <InputText id="signupUsername" @bind-Value="_signupModel.Username"/>
-        <ValidationMessage For="@(() => _signupModel.Username)"/>
-    </div>
-
-    <div class="form-group">
-        <label for="signupPassword">Password:</label>
-        <InputText id="signupPassword" @bind-Value="_signupModel.Password" type="password"/>
-        <ValidationMessage For="@(() => _signupModel.Password)"/>
-    </div>
-
-    <div class="form-group">
-        <label for="signupEmail">Email:</label>
-        <InputText id="signupEmail" @bind-Value="_signupModel.Email"/>
-        <ValidationMessage For="@(() => _signupModel.Email)"/>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Sign Up</button>
-</EditForm>
+</div>
 
 @code {
-    private UserDto _loginModel = new();
-    private UserDto _signupModel = new();
-    private bool _loginErrorVisible;
-
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-    }
+    private LoginModel _loginModel = new();
+    private SignupModel _signupModel = new();
+    private string? _loginError;
+    private string? _signupError;
 
     private async Task HandleLogin() {
         try {
             var authProvider = (SimpleAuthProvider)AuthProvider;
-            await authProvider.LoginASync(_loginModel.Username, _loginModel.Password);
+            await authProvider.LoginAsync(_loginModel.Username, _loginModel.Password);
             Console.WriteLine("Login successful.");
-            _loginErrorVisible = false;
+            _loginError = null;
             NavigationManager.NavigateTo("/");
         }
-        catch (Exception) {
-            _loginErrorVisible = true;
+        catch (Exception ex) {
+            _loginError = "Invalid username or password.";
+            Console.WriteLine($"Login failed: {ex.Message}");
         }
     }
 
     private async Task HandleSignUp() {
         try {
-            var user = await UserService.AddAsync(_signupModel);
-            Console.WriteLine($"Sign up successful. User ID: {user.Id}");
-            // TODO...
+            var newUser = new UserDto {
+                Username = _signupModel.Username,
+                Password = _signupModel.Password,
+                Email = _signupModel.Email
+            };
+            var user = await UserService.AddAsync(newUser);
+            Console.WriteLine($"Sign-up successful. User ID: {user.Id}");
+            NavigationManager.NavigateTo("/");
         }
         catch (Exception ex) {
-            Console.WriteLine($"Sign up failed: {ex.Message}");
+            _signupError = "Sign-up failed. Please try again.";
+            Console.WriteLine($"Sign-up failed: {ex.Message}");
         }
     }
 
-    private static string GetLoginCssClass(bool loginError) {
-        return loginError ? "form-control is-invalid" : "form-control";
+    public class LoginModel {
+        [Required(ErrorMessage = "Username is required")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class SignupModel {
+        [Required(ErrorMessage = "Username is required")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = string.Empty;
     }
 }
