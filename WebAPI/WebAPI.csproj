@@ -14,6 +14,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\DTOs\DTOs.csproj" />
+      <ProjectReference Include="..\EfcRepos\EfcRepos.csproj" />
       <ProjectReference Include="..\LocalImpl\LocalImpl.csproj" />
       <ProjectReference Include="..\RepoContracts\RepoContracts.csproj" />
       <ProjectReference Include="..\ServerEntities\ServerEntities.csproj" />
